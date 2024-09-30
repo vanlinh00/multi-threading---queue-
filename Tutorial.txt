@@ -1,0 +1,33 @@
+Một ví dụ điển hình của một hệ thống mà nếu không dùng multi-threading hoặc queue bất đồng bộ, thì sẽ dễ dàng gặp vấn đề hiệu năng nghiêm trọng là hệ thống thanh toán trực tuyến của một sàn thương mại điện tử vào ngày mua sắm cao điểm, chẳng hạn như Black Friday hoặc 11/11.
+
+Mô tả bài toán thực tế: Hệ thống thanh toán trực tuyến
+Trong tình huống này, khi khách hàng nhấn vào nút "thanh toán", hệ thống phải xử lý rất nhiều tác vụ cùng lúc như:
+
+Kiểm tra hàng tồn kho: Xác định sản phẩm có còn trong kho không.
+Xác nhận thanh toán: Gửi yêu cầu đến hệ thống ngân hàng hoặc ví điện tử.
+Ghi lại thông tin đơn hàng: Lưu vào cơ sở dữ liệu thông tin đơn hàng.
+Gửi thông báo cho nhà cung cấp: Thông báo cho nhà cung cấp rằng đơn hàng đã được đặt.
+Gửi email xác nhận cho khách hàng: Thông báo cho khách rằng đơn hàng đã thành công.
+Hệ thống không sử dụng multi-threading hoặc queue bất đồng bộ:
+Nếu tất cả các bước trên đều được thực hiện trong một luồng tuần tự (synchronous processing), thì mỗi bước phải hoàn thành trước khi bước tiếp theo bắt đầu. Ví dụ:
+
+Hệ thống sẽ chờ phản hồi từ ngân hàng về trạng thái thanh toán trước khi tiếp tục lưu thông tin đơn hàng.
+Sau đó, hệ thống phải đợi ghi xong dữ liệu vào cơ sở dữ liệu trước khi gửi thông báo email cho khách hàng.
+Trong khi hệ thống đang xử lý một yêu cầu, các yêu cầu khác phải xếp hàng đợi và chờ đến lượt.
+Vấn đề gặp phải:
+Thời gian xử lý lâu: Nếu có nhiều khách hàng cùng nhấn nút "thanh toán" tại cùng một thời điểm, thì hệ thống sẽ phải xử lý tuần tự từng yêu cầu. Điều này dẫn đến thời gian phản hồi lâu, làm giảm trải nghiệm người dùng.
+Dễ treo và quá tải: Khi có quá nhiều yêu cầu đến cùng một lúc (ví dụ hàng nghìn yêu cầu), hệ thống có thể bị quá tải vì mỗi yêu cầu phải đợi các yêu cầu khác xử lý xong, gây ra tình trạng treo hoặc sập hệ thống.
+Hiệu suất thấp: Hệ thống không tận dụng được hết tài nguyên phần cứng như CPU đa nhân, vì chỉ có một luồng duy nhất đang xử lý công việc tại một thời điểm.
+Giải pháp với multi-threading và queue bất đồng bộ:
+Sử dụng multi-threading và queue bất đồng bộ sẽ cho phép hệ thống xử lý song song các tác vụ:
+
+Khi khách hàng nhấn nút thanh toán, yêu cầu sẽ được đưa vào một queue.
+Nhiều worker threads (công nhân luồng) sẽ lấy yêu cầu từ queue để xử lý đồng thời.
+Ví dụ: Kiểm tra hàng tồn kho, xác nhận thanh toán, lưu đơn hàng và gửi email có thể được xử lý song song thay vì phải chờ tuần tự.
+Lợi ích của việc sử dụng multi-threading và queue:
+Tăng tốc độ xử lý: Các tác vụ có thể được xử lý song song, giúp giảm đáng kể thời gian phản hồi cho người dùng.
+Giảm tải và tăng khả năng chịu đựng: Hệ thống có thể xử lý nhiều yêu cầu cùng lúc mà không gặp vấn đề treo hoặc sập do quá tải.
+Tối ưu hóa tài nguyên hệ thống: Sử dụng hiệu quả các CPU đa nhân, tăng hiệu suất tổng thể.
+Ví dụ thực tế:
+
+Amazon hoặc Shopee vào các sự kiện lớn như "Black Friday" hay "11/11" phải xử lý hàng triệu giao dịch cùng lúc. Nếu không sử dụng multi-threading hoặc queue bất đồng bộ để xử lý các yêu cầu thanh toán và xử lý đơn hàng song song, hệ thống có thể dễ dàng bị quá tải, dẫn đến việc khách hàng phải chờ đợi rất lâu hoặc thậm chí không thể hoàn tất giao dịch.
